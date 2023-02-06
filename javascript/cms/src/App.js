@@ -1,5 +1,6 @@
 import { ColorModeContext, useMode } from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
+import SideMenu from "./pages/global/SideMenu";
 
 function App() {
   const [theme, colorMode] = useMode();
@@ -9,6 +10,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <div className="app">
+          <SideMenu />
           <main className="content">test</main>
         </div>
       </ThemeProvider>
