@@ -1,40 +1,30 @@
 package transport
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/cioti/monorepo/cms.api/shared"
-	"github.com/cioti/monorepo/pkg/api"
-	"github.com/cioti/monorepo/pkg/transport/http"
-	"github.com/gin-gonic/gin"
+	pkghttp "github.com/cioti/monorepo/pkg/transport/http"
+	"github.com/go-kit/kit/endpoint"
+	kithttp "github.com/go-kit/kit/transport/http"
 )
 
-type HttpTransportBuilder interface {
-	Build() *gin.Engine
+func CreateHandler() http.Handler {
+	builder := pkghttp.NewHttpRouteBuilder()
+	builder.AddRoute(http.MethodGet, shared.GetProjectsRoute, createGetProjectsEndpoint(), createDecodeGetProjects())
+
+	return builder.Build()
 }
 
-type httpTransportBuilder struct {
+func createGetProjectsEndpoint() endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		return "lalallala", nil
+	}
 }
 
-func NewHttpTransportBuilder() HttpTransportBuilder {
-	return &httpTransportBuilder{}
-}
-
-func (b *httpTransportBuilder) Build() *gin.Engine {
-	router := gin.Default()
-
-	router.GET(shared.GetProjectsRoute, createGetProjectsEndpoint())
-	return router
-}
-
-func createGetProjectsEndpoint() gin.HandlerFunc {
-	endpoint := http.CreateEndpoint(
-		http.EncodeJSONResponse,
-		http.NopDecoder,
-		func(ctx *gin.Context, request interface{}) (api.ApiResponse, api.ApiError) {
-			return api.NewApiResponse(200, "success"), nil
-		},
-	)
-
-	return func(ctx *gin.Context) {
-		endpoint.Execute(ctx)
+func createDecodeGetProjects() kithttp.DecodeRequestFunc {
+	return func(ctx context.Context, r *http.Request) (request interface{}, err error) {
+		return "test", nil
 	}
 }

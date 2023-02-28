@@ -1,8 +1,19 @@
 package main
 
-import "github.com/cioti/monorepo/cms.api/internal/transport"
+import (
+	"github.com/cioti/monorepo/cms.api/internal/transport"
+	"github.com/cioti/monorepo/pkg/approot"
+	"github.com/cioti/monorepo/pkg/bootstrap"
+)
+
+var errCh = make(chan error)
 
 func main() {
-	builder := transport.NewHttpTransportBuilder()
-	builder.Build().Run(":8080")
+	logger := approot.Infra().Logger()
+
+	logger.Info("logging test")
+	handler := transport.CreateHandler()
+	bootstrap.CreateServer(handler, errCh)
+
+	bootstrap.WaitForTermination(errCh)
 }
