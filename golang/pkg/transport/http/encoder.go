@@ -4,18 +4,28 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+
+	pkgapi "github.com/cioti/monorepo/pkg/api"
+)
+
+const (
+	jsonContentType = "application/json; charset=utf-8"
+	unknownErrMsg   = "An unknown error occured on the server"
+	unknownErrCode  = "500-Internal"
 )
 
 func JsonErrorEncoder(_ context.Context, err error, responseWriter http.ResponseWriter) {
-	// if err == nil {
-	// 	err = tleerrors.NewInternalServerErrorf("Unexpected")
-	// }
-	WriteErrorResponseHeaders(responseWriter, err)
-	responseWriter.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(responseWriter).Encode(map[string]interface{}{"error": err.Error()})
-}
+	responseWriter.Header().Set("Content-Type", jsonContentType)
+	apiErr, ok := err.(pkgapi.ApiError)
+	if !ok {
+		errorResponse := pkgapi.NewApiErrorResponse(http.StatusInternalServerError, unknownErrMsg, unknownErrCode)
+		responseWriter.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(responseWriter).Encode(errorResponse)
 
-// WriteErrorResponseHeaders writes relevant headers to json response based on a given error.
-func WriteErrorResponseHeaders(responseWriter http.ResponseWriter, err error) {
+		return
+	}
 
+	errorResponse := pkgapi.NewApiErrorResponseFromError(apiErr)
+	responseWriter.WriteHeader(apiErr.StatusCode())
+	json.NewEncoder(responseWriter).Encode(errorResponse)
 }

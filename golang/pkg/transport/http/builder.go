@@ -11,29 +11,31 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type HttpRouteBuilder struct {
+type EndpointInfo struct {
+	Method   string
+	Route    string
+	Endpoint endpoint.Endpoint
+	Decoder  kithttp.DecodeRequestFunc
+}
+
+type EndpointBuilder struct {
 	router *mux.Router
 	logger logging.Logger
 }
 
-func NewHttpRouteBuilder() *HttpRouteBuilder {
-	return &HttpRouteBuilder{
+func NewHEndpointBuilder() *EndpointBuilder {
+	return &EndpointBuilder{
 		router: mux.NewRouter(),
 	}
 }
 
-func (b *HttpRouteBuilder) AddRoute(
-	method string,
-	route string,
-	endpoint endpoint.Endpoint,
-	decoder kithttp.DecodeRequestFunc) {
-
+func (b *EndpointBuilder) AddEndpoint(info EndpointInfo) {
 	errorLogger := kithttp.ServerErrorLogger(b.logger)
 	errorEncoder := kithttp.ServerErrorEncoder(JsonErrorEncoder)
-	handler := kithttp.NewServer(endpoint, decoder, kithttp.EncodeJSONResponse, errorLogger, errorEncoder)
-	b.router.Handle(route, handler).Methods(method)
+	handler := kithttp.NewServer(info.Endpoint, info.Decoder, kithttp.EncodeJSONResponse, errorLogger, errorEncoder)
+	b.router.Handle(info.Route, handler).Methods(info.Method)
 }
 
-func (b *HttpRouteBuilder) Build() http.Handler {
+func (b *EndpointBuilder) Build() http.Handler {
 	return handlers.LoggingHandler(os.Stdout, b.router)
 }

@@ -1,26 +1,39 @@
 package api
 
-type ApiResponse interface {
-	StatusCode() int
-	Payload() interface{}
+type ApiResponse struct {
+	StatusCode int
+	Data       interface{}
+	Error      ApiErrorResponse
 }
 
-type apiResponse struct {
-	statusCode int
-	payload    interface{}
+type ApiErrorResponse struct {
+	Code    string
+	Message string
 }
 
-func (r *apiResponse) StatusCode() int {
-	return r.statusCode
+func NewApiResponse(statusCode int, data interface{}) ApiResponse {
+	return ApiResponse{
+		StatusCode: statusCode,
+		Data:       data,
+	}
 }
 
-func (r *apiResponse) Payload() interface{} {
-	return r.payload
+func NewApiErrorResponse(statusCode int, message string, errorCode string) ApiResponse {
+	return ApiResponse{
+		StatusCode: statusCode,
+		Error: ApiErrorResponse{
+			Message: message,
+			Code:    errorCode,
+		},
+	}
 }
 
-func NewApiResponse(statusCode int, payload interface{}) ApiResponse {
-	return &apiResponse{
-		statusCode: statusCode,
-		payload:    payload,
+func NewApiErrorResponseFromError(err ApiError) ApiResponse {
+	return ApiResponse{
+		StatusCode: err.StatusCode(),
+		Error: ApiErrorResponse{
+			Message: err.Error(),
+			Code:    err.ErrorCode(),
+		},
 	}
 }
