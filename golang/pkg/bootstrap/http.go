@@ -1,9 +1,12 @@
 package bootstrap
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"sync"
+
+	"github.com/cioti/monorepo/pkg/logging"
 )
 
 var (
@@ -28,13 +31,15 @@ func getListener() net.Listener {
 	return serviceTCPListener
 }
 
-func CreateServer(handler http.Handler, errCh chan error) *http.Server {
+func CreateServer(handler http.Handler, logger logging.Logger, errCh chan error) *http.Server {
 	server := &http.Server{
 		Handler: handler,
 	}
 
+	listener := getListener()
 	go func() {
-		errCh <- server.Serve(getListener())
+		logger.Info(logging.Message, fmt.Sprintf("Start HTTP listening on: %s", listener.Addr()))
+		errCh <- server.Serve(listener)
 	}()
 
 	return server

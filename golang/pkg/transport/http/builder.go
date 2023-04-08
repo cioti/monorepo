@@ -23,8 +23,9 @@ type EndpointBuilder struct {
 	logger logging.Logger
 }
 
-func NewHEndpointBuilder() *EndpointBuilder {
+func NewHEndpointBuilder(logger logging.Logger) *EndpointBuilder {
 	return &EndpointBuilder{
+		logger: logger,
 		router: mux.NewRouter(),
 	}
 }

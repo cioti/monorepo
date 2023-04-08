@@ -2,14 +2,14 @@ package domain
 
 type ApiID string
 
-type ModelField struct {
+type Field struct {
 	Name        string
 	ApiID       ApiID
 	Description string
 	Type        string
 }
 
-type ContentField struct {
+type Content struct {
 	Name        string
 	ApiID       ApiID
 	Description string
