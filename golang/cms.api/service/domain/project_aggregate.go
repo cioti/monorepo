@@ -6,6 +6,7 @@ import (
 	"github.com/cioti/monorepo/pkg/datetime"
 	"github.com/cioti/monorepo/pkg/storage/mongo"
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 )
 
 type ProjectAggregate struct {
@@ -33,21 +34,58 @@ func NewProjectAggregate(cmd shared.CreateProjectCommand) (ProjectAggregate, err
 	}, nil
 }
 
-func (p *ProjectAggregate) AddModel(cd shared.AddModelCommand) error {
-	model, err := NewModel(cd.ProjectID, cd.ApiID, cd.Name, cd.Description)
+func (p *ProjectAggregate) AddModel(cd shared.AddModelCommand) (Model, error) {
+	model, err := NewModel(cd.ApiID, cd.Name, cd.Description)
 	if err != nil {
-		return err
+		return Model{}, err
 	}
 	for _, m := range p.Models {
 		if m.Name == cd.Name {
-			return api.NewBadRequestErrorf("Model with name '%s' already exists", cd.Name)
+			return Model{}, api.NewBadRequestErrorf("Model with name '%s' already exists", cd.Name)
 		}
-		if m.ApiID == cd.ApiID {
-			return api.NewBadRequestErrorf("Model with apiID '%s' already exists", cd.ApiID)
+		if m.ApiID.String() == cd.ApiID {
+			return Model{}, api.NewBadRequestErrorf("Model with apiID '%s' already exists", cd.ApiID)
 		}
 	}
 
 	p.Models = append(p.Models, model)
 
-	return nil
+	return model, nil
+}
+
+func (p *ProjectAggregate) AddModelField(cd shared.AddModelFieldCommand, ft FieldType) (Field, error) {
+	model, found := lo.Find(p.Models, func(item Model) bool {
+		return item.ApiID.String() == cd.ModelApiID
+	})
+	if !found {
+		return Field{}, api.NewBadRequestErrorf("Model with apiID '%s' not found", cd.FieldApiID)
+	}
+
+	return model.AddField(cd.Name, cd.FieldApiID, cd.Description, ft)
+}
+
+func (p *ProjectAggregate) AddContent(cd shared.AddContentCommand, vp ValidationProcessor) (Content, error) {
+	model, found := lo.Find(p.Models, func(item Model) bool {
+		return item.ApiID.String() == cd.ModelApiID
+	})
+	if !found {
+		return Content{}, api.NewBadRequestErrorf("Model with apiID '%s' not found", cd.ModelApiID)
+	}
+	field, found := lo.Find(model.Fields, func(item Field) bool {
+		return item.ApiID.String() == cd.FieldApiID
+	})
+	if !found {
+		return Content{}, api.NewBadRequestErrorf("Field with apiID '%s' not found", cd.FieldApiID)
+	}
+
+	isValid, err := vp.Validate(cd.Value, field)
+	if err != nil {
+		return Content{}, err
+	}
+
+	if !isValid {
+		return Content{}, api.NewBadRequestErrorf("Field validation failed")
+	}
+
+	return model.AddContent(cd.FieldApiID, cd.Value)
 }

@@ -13,9 +13,9 @@ var errCh = make(chan error)
 
 func main() {
 	logger := approot.Infra().Logger()
-
 	repo := infra.NewProjectRepository(*approot.Infra().Mongo().Database("cms"))
-	svc := app.NewProjectService(repo)
+	ftRepo := infra.NewFieldTypeRepository(*approot.Infra().Mongo().Database("cms"))
+	svc := app.NewProjectService(repo, ftRepo)
 	endpoints := transport.NewEndpoints(svc)
 	handler := http.CreateHandler(endpoints, logger)
 	bootstrap.CreateServer(handler, logger, errCh)

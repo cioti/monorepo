@@ -14,3 +14,19 @@ type AddModelCommand struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 }
+
+type AddModelFieldCommand struct {
+	ProjectID   uuid.UUID `json:"projectId"`
+	ModelApiID  string    `json:"modelApiId"`
+	FieldApiID  string    `json:"fieldApiId"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	FieldTypeID uint      `json:"fieldTypeId"`
+}
+
+type AddContentCommand struct {
+	ProjectID  uuid.UUID   `json:"projectId"`
+	ModelApiID string      `json:"modelApiId"`
+	FieldApiID string      `json:"fieldApiId"`
+	Value      interface{} `json:"value"`
+}

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	collection = "projects"
+	projectCollection = "projects"
 )
 
 type projectRepository struct {
@@ -25,20 +25,20 @@ func NewProjectRepository(database mongo.Database) domain.ProjectRepository {
 }
 
 func (r projectRepository) Insert(ctx context.Context, project domain.ProjectAggregate) error {
-	_, err := r.database.Collection(collection).InsertOne(ctx, project)
+	_, err := r.database.Collection(projectCollection).InsertOne(ctx, project)
 	return err
 }
 
 func (r projectRepository) Get(ctx context.Context, id uuid.UUID) (domain.ProjectAggregate, error) {
 	var agg domain.ProjectAggregate
-	result := r.database.Collection(collection).FindOne(ctx, bson.M{"_id": mongopkg.NewMUUID(id)})
+	result := r.database.Collection(projectCollection).FindOne(ctx, bson.M{"_id": mongopkg.NewMUUID(id)})
 	err := result.Decode(&agg)
 	return agg, err
 }
 
 func (r projectRepository) Save(ctx context.Context, project domain.ProjectAggregate) error {
 	filter := bson.D{{Key: "_id", Value: project.ID}}
-	result, err := r.database.Collection(collection).ReplaceOne(ctx, filter, project)
+	result, err := r.database.Collection(projectCollection).ReplaceOne(ctx, filter, project)
 	if err != nil {
 		return err
 	}

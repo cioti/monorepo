@@ -35,6 +35,20 @@ func (e *apiError) ErrorCode() string {
 	return e.errorCode
 }
 
+func NewInternalServerErrorf(format string, args ...interface{}) ApiError {
+	return &apiError{
+		statusCode: http.StatusInternalServerError,
+		err:        errors.New(fmt.Sprintf(format, args...)),
+	}
+}
+
+func NewInternalServerError(err error, format string, args ...interface{}) ApiError {
+	return &apiError{
+		statusCode: http.StatusInternalServerError,
+		err:        errors.Wrapf(err, format),
+	}
+}
+
 func NewBadRequestErrorf(format string, args ...interface{}) ApiError {
 	return &apiError{
 		statusCode: http.StatusBadRequest,

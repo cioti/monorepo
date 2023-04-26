@@ -13,6 +13,7 @@ import (
 type Endpoints interface {
 	CreateProject() endpoint.Endpoint
 	AddModel() endpoint.Endpoint
+	AddModelField() endpoint.Endpoint
 	GetProjects() endpoint.Endpoint
 }
 
@@ -59,6 +60,21 @@ func (e endpoints) AddModel() endpoint.Endpoint {
 			return nil, err
 		}
 		err = e.projectSvc.AddModel(ctx, cd)
+		if err != nil {
+			return nil, err
+		}
+
+		return api.NewApiResponse(http.StatusOK, nil), nil
+	}
+}
+
+func (e endpoints) AddModelField() endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		cd, err := cast[shared.AddModelFieldCommand](request)
+		if err != nil {
+			return nil, err
+		}
+		err = e.projectSvc.AddModelField(ctx, cd)
 		if err != nil {
 			return nil, err
 		}
